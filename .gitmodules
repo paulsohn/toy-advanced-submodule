@@ -1,0 +1,13 @@
+[submodule "sub/group-a/hello1"]
+	path = sub/group-a/hello1
+	url = https://github.com/githubtraining/hellogitworld.git
+[submodule "sub/group-a/nested/hello2"]
+	path = sub/group-a/nested/hello2
+	url = https://github.com/githubtraining/hellogitworld.git
+	branch = bisect
+[submodule "sub/group-b/hello3"]
+	path = sub/group-b/hello3
+	url = https://github.com/githubtraining/hellogitworld.git
+[submodule "sub/group-b/nested/hello4"]
+	path = sub/group-b/nested/hello4
+	url = https://github.com/githubtraining/hellogitworld.git
