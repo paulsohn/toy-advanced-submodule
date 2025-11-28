@@ -14,3 +14,7 @@
 	path = sub/group-b/nested/hello4
 	url = https://github.com/githubtraining/hellogitworld.git
 	branch = bisect
+[submodule "games"]
+	path = sub/group-a/github-games
+	url = https://github.com/githubtraining/github-games
+	branch = game-instructions
