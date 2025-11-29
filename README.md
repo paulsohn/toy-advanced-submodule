@@ -8,9 +8,11 @@ Submodules are registered in [`.gitmodules`](.gitmodules), each specifies
 [submodule "submodule_name"]
 	path = path/to/submodule
 	url = <remote git URL>
-	branch = my_branch
-    update = none
+	branch = my_branch # optional
+    update = none # optional
 ```
+
+In our submodule structure, 'branch following' is realized by a submodule without `submodule.<submodule_name>.update` and with `submodule.<submodule_name>.branch` specified, and 'tag/commit pinning' is realized by a submodule with `submodule.<submodule_name>.update = none` specified.
 
 ## Cloning the repository
 
@@ -50,12 +52,17 @@ $ git submodule deinit --all
 ```bash
 # update every branch-tracking submodules into the latest
 $ git submodule update --remote
-# revert every branch-tracking submodules into the current commit
+# revert every branch-tracking submodules into the version pinned in the superproject
 $ git submodule update
+# revert every submodules into the version pinned in the superproject
+# this can be used when you just pulled the superproject, and `update = none` submodules has been updated.
+$ git submodule update --checkout
 ```
 
-Unlike initializing, `--checkout` flag should not be specified, so that `update = none` submodules are not updated.
 These commands accepts pathspec as the last argument, so that you can sync / revert only particular directories.
+
+Note that `git submodule update --remote --checkout` means to update every submodules to the latest remote, including `update = none` ones, which would be not an intended usecase.
+It is suffice to remember that `--remote` does not come with `--checkout`.
 
 ## Finding the version (and the tag)
 
@@ -79,9 +86,31 @@ $ git submodule status
  a9095e79eaafd9f11a9d12e5a1ae125fde81a5eb sub/group-b/nested/hello4 (remotes/origin/bisect)
 ```
 
-## Pinning the version
+## Checking out to a specific version
 
-You can change the remote-tracking branch of each submodule:
+```bash
+$ cd sub/group-a/hello1
+$ git checkout master # branch name, tag or commit hash from `sub/group-a/hello1` repository
+$ cd - # to the superproject directory
+```
+
+`cd` can be omitted; every git command can be executed with a context, so we can use one-liner:
+```bash
+$ git -C sub/group-a/hello1 checkout master
+```
+
+The superproject does not distinguish whether a submodule is on a branch or in detatched HEAD state, as long as the commit hashes agree with each other.
+Therefore, this is not a proper way to specify `sub/group-a/hello1` to track the `master` branch; from the superproject's perspective, the submodule is only pinned to the latest commit of the branch.
+See below for the correct way (`set-branch`) to tell the superproject to use `master` branch on sync.
+
+If you want to edit the submodule and commit the changes, then you should do things in this order:
+1. Checkout the submodule into your desired base branch.
+2. Create a submodule commit.
+3. Create a superproject commit.
+
+## Configuring the branch to 'track'
+
+You can configure the remote-tracking branch of each submodule:
 
 ```bash
 # set tracking branch to 'bisect'
@@ -90,29 +119,32 @@ $ git submodule set-branch -b bisect sub/group-a/hello1
 $ git submodule set-branch -d sub/group-a/hello1
 ```
 
-**Important Note**:
-even if you set tracking branch automatically, the pinned version does not update automatically to the branch HEAD.
-If you just set the branch, then don't forget to do:
-
+Additionally, if `update = none` is specified in `.gitmodules` for that submodule, you might want to remove that line by CLI or in an editor, so that it can be synced.
 ```bash
-$ git submodule update --remote --checkout sub/group-a/hello1
+$ git config --file .gitmodules --unset submodule.sub/group-a/hello1.update none
+```
+
+**Important Note**:
+even if you have configured tracking branch automatically, the submodule version in the superproject does not update automatically to the branch HEAD.
+If you have just set the branch, then do not forget to do either:
+```bash
+$ git submodule update --remote sub/group-a/hello1
 ```
 or
 ```bash
-$ git -C sub/group-a/hello1 switch bisect sub/group-a/hello1
+$ git -C sub/group-a/hello1 fetch
+$ git -C sub/group-a/hello1 switch bisect
 ```
 
-## Checking out to a specific version
+## Pinning the version
 
+To exclude submodule `sub/group-a/hello2` from branch-tracking, you can add `update = none` of the corresponding configuration entity.
+This can be done via either an editor, or the CLI command:
 ```bash
-$ cd sub/group-a/hello1
-$ git checkout master # branch name, tag or commit hash
-$ cd - # to the superproject directory
+$ git config --file .gitmodules submodule.sub/group-a/hello2.update none
 ```
 
-Some notes:
-* `cd` can be omitted; every git command can be executed with a context, and in this case `git -C sub/group-a/hello1 checkout master`.
-* The superproject does not distinguish whether a submodule is on a branch or in detatched HEAD state, as long as the commit hashes agree with each other.
+Optionally, you may consider executing `git submodule set-branch -d sub/group-a/hello2`, but this does not affect to the behavior (unless you accidently executed `git submodule update --remote --checkout`) and it is in most cases informative to leave the branch name.
 
 ## Adding and removing a submodule
 
@@ -140,5 +172,4 @@ $ git rm sub/group-a/github-games
 
 If you just don't need the submodule locally, but have no intention to commit its removal, then consider deinitializing it.
 
-Submodule names are often confusing, since some git commands accepts logical names for git submodule but other doesn't.
-I recommend not to specify submodule name at all.
+Some git commands manipulating submodules accepts logical names while others don't, so submodule name other than its path on the superdirectory might be confusing.
