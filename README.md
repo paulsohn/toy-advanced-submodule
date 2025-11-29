@@ -12,7 +12,7 @@ Submodules are registered in [`.gitmodules`](.gitmodules), each specifies
     update = none # optional
 ```
 
-In our submodule structure, 'branch following' is realized by a submodule without `submodule.<submodule_name>.update` and with `submodule.<submodule_name>.branch` specified, and 'tag/commit pinning' is realized by a submodule with `submodule.<submodule_name>.update = none` specified.
+In our submodule structure, 'branch tracking' is realized by a submodule without `submodule.<submodule_name>.update` and with `submodule.<submodule_name>.branch` specified, and 'tag/commit pinning' is realized by a submodule with `submodule.<submodule_name>.update = none` specified.
 
 ## Cloning the repository
 
@@ -52,17 +52,17 @@ $ git submodule deinit --all
 ```bash
 # update every branch-tracking submodules into the latest
 $ git submodule update --remote
-# revert every branch-tracking submodules into the version pinned in the superproject
-$ git submodule update
-# revert every submodules into the version pinned in the superproject
-# this can be used when you just pulled the superproject, and `update = none` submodules has been updated.
+# revert every submodules (branch-tracking and pinned) into the version pinned in the superproject.
+# if you checked out (e.g. pulled) a superproject, you must update pinned submodules as well, so `--checkout` is used.
 $ git submodule update --checkout
 ```
 
 These commands accepts pathspec as the last argument, so that you can sync / revert only particular directories.
 
 Note that `git submodule update --remote --checkout` means to update every submodules to the latest remote, including `update = none` ones, which would be not an intended usecase.
-It is suffice to remember that `--remote` does not come with `--checkout`.
+It is therefore suffice to remember that `--remote` does not come along with `--checkout`.
+
+These commands are assumed that no local submodule checkouts has been staged before the execution.
 
 ## Finding the version (and the tag)
 
@@ -135,6 +135,9 @@ or
 $ git -C sub/group-a/hello1 fetch
 $ git -C sub/group-a/hello1 switch bisect
 ```
+
+[`check-submodules.sh`](./check-submodules.sh) can be used to check if the actual commit is on the configured branch.
+Please note that all checkouts to validate should be staged before running this script.
 
 ## Pinning the version
 
