@@ -64,7 +64,7 @@ It is therefore suffice to remember that `--remote` does not come along with `--
 
 These commands are assumed that no local submodule checkouts has been staged before the execution.
 
-## Finding the version (and the tag)
+## Finding the version and see the history
 
 Although every submodule is pinned to a particular version, the versions and tags are not maintained inside any regular files.
 
@@ -83,7 +83,47 @@ $ git submodule status
  2a52e96389d02209b451ae1ddf45d645b42d744c sub/group-a/hello1 (RELEASE_1.0)
  a4bb0474c5a88a7dba12bd9d4765666f12d8b0c7 sub/group-a/nested/hello2 (a4bb047)
  8d2636da55da593c421e1cb09eea502a05556a69 sub/group-b/hello3 (RELEASE_1.1)
- a9095e79eaafd9f11a9d12e5a1ae125fde81a5eb sub/group-b/nested/hello4 (remotes/origin/bisect)
+ a9095e79eaafd9f11a9d12e5a1ae125fde81a5eb sub/group-b/nested/hello4 (heads/bisect)
+```
+
+If you have uninitialized submodules, the first character `-` before the commit hash tells you that this submodule is uninitialized.
+Also, if you checked out submodules, the first character `+` before the commit hash indicates any submodule changes not recorded in the superproject.
+
+By default, `git submodule status` describes the status of the current working tree.
+If you want to see the status of the index (i.e. the commit), then add `--cached` option.
+
+```bash
+# status of the current working tree
+$ git submodule status
++ef7bebf8bdb1919d947afe46ab4b2fb4278039b3 sub/group-a/hello1 (RELEASE_1.1-13-gef7bebf)
+ a4bb0474c5a88a7dba12bd9d4765666f12d8b0c7 sub/group-a/nested/hello2 (a4bb047)
+-8d2636da55da593c421e1cb09eea502a05556a69 sub/group-b/hello3
+-a9095e79eaafd9f11a9d12e5a1ae125fde81a5eb sub/group-b/nested/hello4
+# status of the current index
+$ git submodule status --cached
++2a52e96389d02209b451ae1ddf45d645b42d744c sub/group-a/hello1 (RELEASE_1.0)
+ a4bb0474c5a88a7dba12bd9d4765666f12d8b0c7 sub/group-a/nested/hello2 (a4bb047)
+-8d2636da55da593c421e1cb09eea502a05556a69 sub/group-b/hello3
+-a9095e79eaafd9f11a9d12e5a1ae125fde81a5eb sub/group-b/nested/hello4
+```
+
+You can get the list of submodule commits that are applied between superproject commits, by using `git submodule summary`.
+```bash
+$ git submodule summary HEAD sub/group-a
+* sub/group-a/hello1 2a52e96...ef7bebf (13):
+  > Fix groupId after package refactor
+  > Update package name, directory
+  > Update package name, directory
+  > Fix YAML name-value pair missing space
+  > Merge pull request #35 from githubtraining/travis-yml-docker
+  > Even I can change the readme file
+  > Travis CI
+  > Fixes #1
+  > Added gradle build file
+  > Adding maven build script
+  > .gitattributes to make this play nicely onWindows
+  > Adding log files and build output to ignore
+  > Added text about image diff example
 ```
 
 ## Checking out to a specific version
